@@ -1,6 +1,0 @@
-INFO: [VRFC 10-163] Analyzing VHDL file "C:/Users/csipor.antal/Downloads/L3/Source/Labor Project/Labor Project.srcs/sources_1/new/spi_master.vhd" into library xil_defaultlib
-INFO: [VRFC 10-3107] analyzing entity 'spi_master'
-INFO: [VRFC 10-163] Analyzing VHDL file "C:/Users/csipor.antal/Downloads/L3/Source/Labor Project/Labor Project.srcs/sources_1/new/spi_top.vhd" into library xil_defaultlib
-INFO: [VRFC 10-3107] analyzing entity 'spi_top'
-INFO: [VRFC 10-163] Analyzing VHDL file "C:/Users/csipor.antal/Downloads/L3/Source/Labor Project/Labor Project.srcs/sim_1/new/spi_top_tb.vhd" into library xil_defaultlib
-INFO: [VRFC 10-3107] analyzing entity 'spi_top_tb'

@@ -1,8 +1,0 @@
-# compile vhdl design source files
-vhdl xil_defaultlib  \
-"../../../../Labor Project.srcs/sources_1/new/spi_master.vhd" \
-"../../../../Labor Project.srcs/sources_1/new/spi_top.vhd" \
-"../../../../Labor Project.srcs/sim_1/new/spi_top_tb.vhd" \
-
-# Do not sort compile order
-nosort
