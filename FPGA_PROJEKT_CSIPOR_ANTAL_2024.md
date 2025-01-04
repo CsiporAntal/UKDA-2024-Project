@@ -1,8 +1,8 @@
 # KÖVETELMÉNYEK - VÁZLAT
 
-## Fedőlap
+##
 - **Projekt címe: Hangerőség mérő**
-- **Hallgató neve: Csipor ANtal**
+- **Hallgató neve: Csipor Antal**
 - **Szak: Számotástechnika**
 - **Tantárgy: Újrakonfigurálható digitális áramkörök**
 - **Projekt véglegesítésének időpontja:**
