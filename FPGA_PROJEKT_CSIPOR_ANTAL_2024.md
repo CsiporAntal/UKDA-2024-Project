@@ -42,6 +42,7 @@ A projekt során a következő célokat tűztük ki:
 ## C) Tervezés
 
 ### a. Tömbvázlat
+[CamScanner 2025-01-06 10.24.pdf](https://github.com/user-attachments/files/18316032/CamScanner.2025-01-06.10.24.pdf)
 
 ---
 
