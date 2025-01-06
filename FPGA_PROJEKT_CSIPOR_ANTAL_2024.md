@@ -57,6 +57,8 @@ A projekt során a következő célokat tűztük ki:
 ![CamScanner 2025-01-06 10 31-1](https://github.com/user-attachments/assets/8991b240-093c-44ab-9bfd-eff381f8504f)
 ![image](https://github.com/user-attachments/assets/8134e4a8-6524-48fe-b840-d25a1bebcecb)
 
+forrás: https://www.ti.com/lit/ds/symlink/adcs7476.pdf
+
 A rendszerben az SPI interfész a PMOD MIC szenzorról érkező digitális adat beolvasását végzi. A szenzor által generált digitális jel az alábbi formátumban érkezik:
 - **4 vezető '0'-ás bit**, amelyek a keret szinkronizációjához szükségesek.
 - **12 bites adat**, amely az ADC által digitalizált hangerő szintet tartalmazza.
