@@ -66,8 +66,8 @@ Az SPI protokoll használata során a CS jel (Chip Select) kiemelt szerepet ját
 
 Az idődiagram működését az alábbi jelek határozzák meg:
 - **CS jel:** A kommunikáció aktiválásához és deaktiválásához szükséges.
-- **CLK jel:** Szinkronizálja a bitfolyamot.
-- **MOSI vonal:** Adatok küldése a master eszközről a slave eszközre.
+- **SCLK jel:** Szinkronizálja a bitfolyamot.
+- **MOSI vonal:** Nincs használva
 - **MISO vonal:** Adatok fogadása a slave eszközről a master eszközre.
 
 Az SPI idődiagram biztosítja az FPGA és a PMOD MIC közötti megbízható adatátvitelt az órajel és az adatjelek helyes időzítésével.
