@@ -53,7 +53,9 @@ A projekt során a következő célokat tűztük ki:
 
 #### i. Minden modulnak a tervezése
 1. Idődiagram (SPI)
-2. Algoritmus (jelgenerátor)
+![CamScanner 2025-01-06 10 31-1](https://github.com/user-attachments/assets/8991b240-093c-44ab-9bfd-eff381f8504f)
+
+3. Algoritmus (jelgenerátor)
 
 #### ii. FSMD
 1. Állapotdiagram
