@@ -78,13 +78,18 @@ A beolvasott digitális jelet egy algoritmus dolgozza fel, amely az alábbi lép
 - **Adatpufferelés:** Az SPI interfészen érkező adatokat egy pufferben tároljuk, hogy az adatfolyam folytonosságát biztosítsuk.
 - **Maximális hangerő számítása:** A 12 bites adat alapján a rendszer kiszámolja a beérkező hanghullámok maximális amplitúdóját.
   - A számítás az alábbi képlet alapján történik:
-    \[
-    Hangerő = \sqrt{\frac{1}{N} \sum_{i=1}^{N} x[i]^2}
-    \]
+  ```math
+  Hangerő (dB) = 20 \cdot \log_{10} \left( \frac{RMS}{\text{Referencia érték}} \right)
+  ```
     ahol:
-    - \(x[i]\) a digitális jelszintek értéke az egyes mintákból,
-    - \(N\) az összes minta száma a számításhoz.
-  - Ez az RMS (Root Mean Square) számítás, amely az időtartománybeli jel intenzitását adja meg. Ez a módszer biztosítja a pontos és stabil hangerőérték meghatározását.
+    - **RMS**: Az időtartománybeli jel gyök-négyzet középértéke, amelyet az alábbi módon számítunk ki:
+      ```math
+      RMS = \sqrt{\frac{1}{N} \sum_{i=1}^{N} x[i]^2}
+      ```
+      - \(x[i]\): A digitális jelszintek értéke az egyes mintákból.
+      - \(N\): Az összes minta száma a számításhoz.
+    - **Referencia érték**: Az a maximális amplitúdóérték, amelyhez a mért RMS értéket viszonyítjuk.
+  - Ez az RMS (Root Mean Square) számítás, amely az időtartománybeli jel intenzitását adja meg, majd ezt dB-ben (decibelben) fejezzük ki a logaritmikus átalakítás révén.
 - **Hangerő skálázása:** A számított értékeket normalizáljuk, hogy azok a kijelző által kezelhető formában legyenek (pl. BCD kódolás a 7 szegmenses kijelzőhöz).
 
 3. Kijelző vezérlő modul (7 szegmenses LED)
