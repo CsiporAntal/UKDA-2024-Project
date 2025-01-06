@@ -52,7 +52,8 @@ A projekt során a következő célokat tűztük ki:
 ### a. Projekt modulok
 
 #### i. Minden modulnak a tervezése
-1. Idődiagram (SPI)
+#### 1. Idődiagram (SPI)
+
 ![CamScanner 2025-01-06 10 31-1](https://github.com/user-attachments/assets/8991b240-093c-44ab-9bfd-eff381f8504f)
 ![image](https://github.com/user-attachments/assets/8134e4a8-6524-48fe-b840-d25a1bebcecb)
 
@@ -72,7 +73,7 @@ Az idődiagram működését az alábbi jelek határozzák meg:
 
 Az SPI idődiagram biztosítja az FPGA és a PMOD MIC közötti megbízható adatátvitelt az órajel és az adatjelek helyes időzítésével.
 
-2. Algoritmus
+#### 2. Algoritmus
 
 A beolvasott digitális jelet egy algoritmus dolgozza fel, amely az alábbi lépéseket tartalmazza:
 - **Adatpufferelés:** Az SPI interfészen érkező adatokat egy pufferben tároljuk, hogy az adatfolyam folytonosságát biztosítsuk.
@@ -92,7 +93,8 @@ A beolvasott digitális jelet egy algoritmus dolgozza fel, amely az alábbi lép
   - Ez az RMS (Root Mean Square) számítás, amely az időtartománybeli jel intenzitását adja meg, majd ezt dB-ben (decibelben) fejezzük ki a logaritmikus átalakítás révén.
 - **Hangerő skálázása:** A számított értékeket normalizáljuk, hogy azok a kijelző által kezelhető formában legyenek (pl. BCD kódolás a 7 szegmenses kijelzőhöz).
 
-3. Kijelző vezérlő modul (7 szegmenses LED)
+#### 3. Kijelző vezérlő modul (7 szegmenses LED)
+
 A mért hangerő szinteket a 7 szegmenses LED kijelző jeleníti meg az FPGA-n. A kijelző vezérlése a következő lépésekből áll:
 - **Adatkonverzió:** A mért hangerőszintet bináris formátumból BCD formátumba alakítjuk.
 - **Multiplexálás:** Több számjegy esetén multiplexálást alkalmazunk, hogy a kijelzők gyorsan és váltakozva mutassák a megfelelő értékeket.
@@ -101,10 +103,10 @@ A mért hangerő szinteket a 7 szegmenses LED kijelző jeleníti meg az FPGA-n. 
 A mért hangerőséget megjelenitjuk az FPGAán található 7 szegmenses kijelzőn.
 
 #### ii. FSMD
-1. Állapotdiagram
-2. Táblázat fázisműveletekkel
-3. Áramköri rajz
-4. VHDL kódok
+#### 1. Állapotdiagram
+#### 2. Táblázat fázisműveletekkel
+#### 3. Áramköri rajz
+#### 4. VHDL kódok
 
 ---
 
