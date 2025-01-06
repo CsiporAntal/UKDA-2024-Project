@@ -54,8 +54,46 @@ A projekt során a következő célokat tűztük ki:
 #### i. Minden modulnak a tervezése
 1. Idődiagram (SPI)
 ![CamScanner 2025-01-06 10 31-1](https://github.com/user-attachments/assets/8991b240-093c-44ab-9bfd-eff381f8504f)
+![image](https://github.com/user-attachments/assets/8134e4a8-6524-48fe-b840-d25a1bebcecb)
 
-3. Algoritmus (jelgenerátor)
+A rendszerben az SPI interfész a PMOD MIC szenzorról érkező digitális adat beolvasását végzi. A szenzor által generált digitális jel az alábbi formátumban érkezik:
+- **4 vezető '0'-ás bit**, amelyek a keret szinkronizációjához szükségesek.
+- **12 bites adat**, amely az ADC által digitalizált hangerő szintet tartalmazza.
+
+Az SPI protokoll használata során a CS jel (Chip Select) kiemelt szerepet játszik. A CS jel:
+- Alaphelyzetben **1**, amely az inaktív állapotot jelzi.
+- Kommunikáció akkor indul, amikor a CS jel **0-ra vált**, így aktiválva az adatátvitelt.
+
+Az idődiagram működését az alábbi jelek határozzák meg:
+- **CS jel:** A kommunikáció aktiválásához és deaktiválásához szükséges.
+- **CLK jel:** Szinkronizálja a bitfolyamot.
+- **MOSI vonal:** Adatok küldése a master eszközről a slave eszközre.
+- **MISO vonal:** Adatok fogadása a slave eszközről a master eszközre.
+
+Az SPI idődiagram biztosítja az FPGA és a PMOD MIC közötti megbízható adatátvitelt az órajel és az adatjelek helyes időzítésével.
+
+2. Algoritmus
+
+A beolvasott digitális jelet egy algoritmus dolgozza fel, amely az alábbi lépéseket tartalmazza:
+- **Adatpufferelés:** Az SPI interfészen érkező adatokat egy pufferben tároljuk, hogy az adatfolyam folytonosságát biztosítsuk.
+- **Maximális hangerő számítása:** A 12 bites adat alapján a rendszer kiszámolja a beérkező hanghullámok maximális amplitúdóját.
+  - A számítás az alábbi képlet alapján történik:
+    \[
+    Hangerő = \sqrt{\frac{1}{N} \sum_{i=1}^{N} x[i]^2}
+    \]
+    ahol:
+    - \(x[i]\) a digitális jelszintek értéke az egyes mintákból,
+    - \(N\) az összes minta száma a számításhoz.
+  - Ez az RMS (Root Mean Square) számítás, amely az időtartománybeli jel intenzitását adja meg. Ez a módszer biztosítja a pontos és stabil hangerőérték meghatározását.
+- **Hangerő skálázása:** A számított értékeket normalizáljuk, hogy azok a kijelző által kezelhető formában legyenek (pl. BCD kódolás a 7 szegmenses kijelzőhöz).
+
+3. Kijelző vezérlő modul (7 szegmenses LED)
+A mért hangerő szinteket a 7 szegmenses LED kijelző jeleníti meg az FPGA-n. A kijelző vezérlése a következő lépésekből áll:
+- **Adatkonverzió:** A mért hangerőszintet bináris formátumból BCD formátumba alakítjuk.
+- **Multiplexálás:** Több számjegy esetén multiplexálást alkalmazunk, hogy a kijelzők gyorsan és váltakozva mutassák a megfelelő értékeket.
+- **Kijelző meghajtása:** A kijelző szegmenseit vezérlő jeleket a feldolgozott adatok alapján generáljuk, amely a megfelelő számjegyek megjelenítéséért felel.
+
+A mért hangerőséget megjelenitjuk az FPGAán található 7 szegmenses kijelzőn.
 
 #### ii. FSMD
 1. Állapotdiagram
