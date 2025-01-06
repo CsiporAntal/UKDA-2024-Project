@@ -1,5 +1,3 @@
-# KÖVETELMÉNYEK - VÁZLAT
-
 ##
 - **Projekt címe: Hangerőség mérő**
 - **Hallgató neve: Csipor Antal**
@@ -106,6 +104,7 @@ A mért hangerőséget megjelenitjuk az FPGAán található 7 szegmenses kijelz�
 
 #### ii. FSMD
 #### 1. Állapotdiagram
+[image]
 #### 2. Táblázat fázisműveletekkel
 #### 3. Áramköri rajz
 #### 4. VHDL kódok
