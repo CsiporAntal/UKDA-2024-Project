@@ -199,7 +199,6 @@ Az alábbi táblázat az FSM (Végállapotú Automata) működését mutatja be,
 | TRANSFER             | `bit_counter < 16`      | TRANSFER             | `bit_counter += 1`, Shift regiszter frissítése             |
 | TRANSFER             | `bit_counter = 16`      | DONE                 | `-`                                                        |
 | DONE                 | `-`                     | IDLE                 | `CS = '1'`, `data_ready = '1'`, `adc_data` frissítése      |
-| [*] (egyéb állapotok) | `-`                     | IDLE                 | `-`                                                        |
 
 ### Táblázat magyarázata
 
