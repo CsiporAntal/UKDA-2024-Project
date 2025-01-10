@@ -1,171 +1,177 @@
+-- spi_master.vhd
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
-use ieee.std_logic_unsigned.all;
 
 entity spi_master is
-  Port (
-    clk        : in  std_logic;  -- Rendszerórajel (például 100 MHz)
-    reset      : in  std_logic;  -- Reset jel (magas szint törli az állapotot)
-    miso       : in  std_logic;  -- SPI bemeneti adat (Master In Slave Out)
-    sck        : out std_logic;  -- SPI órajel
-    cs         : out std_logic;  -- Chip Select (SPI eszköz kiválasztása)
-    adc_data   : out std_logic_vector(11 downto 0); -- ADC által visszaadott adatok
-    data_ready : out std_logic   -- Jelzi, hogy az adat készen áll
-  );
+    Port (
+        clk        : in  std_logic;                      -- System clock (100 MHz)
+        reset      : in  std_logic;                      -- Active-high reset
+        start      : in  std_logic;                      -- Start signal
+        miso       : in  std_logic;                      -- SPI input data (Master In Slave Out)
+        sck        : out std_logic;                      -- SPI clock 
+        cs         : out std_logic;                      -- Chip Select (active low)
+        adc_data   : out std_logic_vector(11 downto 0);  -- 12-bit ADC data
+        data_ready : out std_logic                       -- Data ready signal
+    );
 end spi_master;
 
 architecture Behavioral of spi_master is
 
-  -- SPI állapotgépe: az SPI kommunikáció különböz? állapotainak meghatározása
-  type state_type is (READY, INIT1, WAIT1, INIT2, WAIT2, INIT3, WAIT3, INIT4, WAIT4, INIT5, INIT6, WAIT5, FINALIZE);
-  signal current_state, next_state : state_type := READY; -- Jelenlegi és következ? állapot
+    ----------------------------------------------------------------------------
+    --  Parameters
+    ----------------------------------------------------------------------------
+    constant SYS_CLK_FREQ : integer := 100_000_000;  -- 100 MHz
+    -- Adjust SPI clock to 25 MHz 
+    constant SPI_CLK_FREQ : integer := 25_000_000;
+    -- Toggling a clock requires dividing by 2:
+    constant DIVISOR      : integer := SYS_CLK_FREQ / (SPI_CLK_FREQ * 2); -- 2
 
-  -- Órajel
-  signal spi_clk     : std_logic := '0'; 
-  signal N1        : std_logic_vector(11 downto 0) := (others => '0');
-  signal N2        : std_logic_vector(11 downto 0) := (others => '0');
-  signal N3        : std_logic_vector(11 downto 0) := (others => '0');
-  
-  
-  -- SPI kommunikációs jelek
-  signal start        : std_logic  := '0'; -- Start jel
-  signal cs_reg       : std_logic := '1'; -- Chip Select alapértelmezett magas
-  signal sck_reg      : std_logic := '0'; -- SPI órajel alapértelmezett alacsony
-  signal bit_counter  : integer range 0 to 15 := 0; -- A küldött és fogadott bitek számlálója
-  signal adc_data_reg : std_logic_vector(11 downto 0) := (others => '0'); -- ADC adat regisztere
-  signal data_ready_reg : std_logic := '0'; -- Jelzi, hogy az adat fogadása befejez?dött
-  signal Ri_next : std_logic_vector(11 downto 0) := (others => '0');
-  signal Ri : std_logic_vector(11 downto 0) := (others => '0');
+    ----------------------------------------------------------------------------
+    --  State Machine Definition
+    ----------------------------------------------------------------------------
+    type state_type is (IDLE, START_XFER, TRANSFER, DONE);
+    signal current_state, next_state : state_type := IDLE;
+
+    ----------------------------------------------------------------------------
+    --  Internal Signals
+    ----------------------------------------------------------------------------
+    signal clk_divider      : integer range 0 to DIVISOR-1 := 0;
+    signal spi_clk_reg      : std_logic := '1';  -- Start high, per PmodMIC requirement
+    signal bit_counter      : integer range 0 to 16 := 0;
+    signal shift_reg        : std_logic_vector(15 downto 0) := (others => '0');
+    signal adc_data_reg     : std_logic_vector(11 downto 0) := (others => '0');
+    signal data_ready_reg   : std_logic := '0';
+    signal cs_reg           : std_logic := '1';  -- Active low
 
 begin
-
-
-  -- Állapot regiszter folyamat: frissíti az aktuális állapotot
-  state_register : process(spi_clk, reset)
-  begin
-    if reset = '1' then
-      current_state <= READY; -- Reset esetén az állapot az READY lesz
-    elsif rising_edge(spi_clk) then
-      current_state <= next_state; -- Állapotfrissítés az SPI órajel emelked? élén
-    end if;
-  end process;
-  
-  
-  ri_register : process(spi_clk)
-  begin
-    if spi_clk 'event and spi_clk = '1' then
-        Ri <= Ri_next;
-    end if;    
-  end process;
-  
-  
-  with current_state select
-    Ri_next <= ri when READY,
-    N1 when INIT1,
-    Ri - 1 when WAIT1,
-    N2 when INIT2,
-    Ri - 1 when WAIT2,
-    N3 when INIT3,
-    Ri - 1 when WAIT3,
-    N3 when INIT4,
-    Ri - 1 when WAIT4,
-    N3 when INIT5,
-    N2 when INIT6,
-    Ri - 1 when WAIT5,
-    Ri when FINALIZE;
-    
-    
-
-  -- SPI állapotgép logikája
-  spi_logic : process(current_state, bit_counter, start, miso)
-  begin
-    -- Alapértelmezett kimeneti értékek (minden ciklus elején)
-    next_state      <= current_state; -- Következ? állapot alapértelmezésben megegyezik az aktuálissal
-    cs_reg          <= '1'; -- Alapértelmezett: Chip Select magas
-    sck_reg         <= '0'; -- SPI órajel alapértelmezett alacsony
-    data_ready_reg  <= '0'; -- Adatfogadás alapértelmezetten nincs kész
-    
-    
-    
-    -- Állapotok kezelése
-    case current_state is
-      when READY => -- READY állapot
-        if start = '1' then
-            next_state <= INIT1;
-        else
-            next_state <= READY;
+    ----------------------------------------------------------------------------
+    --  Generate SPI Clock from System Clock
+    ----------------------------------------------------------------------------
+    process(clk, reset)
+    begin
+        if reset = '1' then
+            clk_divider   <= 0;
+            spi_clk_reg   <= '1';
+        elsif rising_edge(clk) then
+            if clk_divider = DIVISOR-1 then
+                clk_divider <= 0;
+                spi_clk_reg <= not spi_clk_reg;
+            else
+                clk_divider <= clk_divider + 1;
+            end if;
         end if;
-      
-      when INIT1 =>
-            next_state <= WAIT1;
-      
-      when WAIT1 =>
-            if Ri > 0 then
-                next_state <= WAIT1;
-            else
-                next_state <= INIT1;
+    end process;
+
+    sck <= spi_clk_reg;
+
+    ----------------------------------------------------------------------------
+    --  Synchronous FSM + Data Capture (single clock domain: spi_clk_reg)
+    ----------------------------------------------------------------------------
+    -- We sample/shift data on the falling edge of spi_clk_reg. 
+    -- We also do the state transitions on the rising edge of spi_clk_reg to 
+    -- avoid racing the shift.  
+    ----------------------------------------------------------------------------
+
+    -- 1) Synchronous process: On rising_edge of SPI clock
+    fsm_reg: process(spi_clk_reg, reset)
+    begin
+        if reset = '1' then
+            current_state   <= IDLE;
+            bit_counter     <= 0;
+                shift_reg       <= (others => '0');
+                data_ready_reg  <= '0';
+                cs_reg          <= '1';
+                adc_data_reg    <= (others => '0');
+        elsif rising_edge(spi_clk_reg) then
+            current_state <= next_state;
+
+            case current_state is
+
+                when IDLE =>
+                    -- Remain in IDLE until start=1; do nothing else here
+                    null;
+
+                when START_XFER =>
+                    cs_reg          <= '0';  -- activate
+                    bit_counter     <= 0;
+                    shift_reg       <= (others => '0');
+                    data_ready_reg  <= '0';
+
+                when TRANSFER =>
+                    if bit_counter < 16 then
+                        bit_counter <= bit_counter + 1;
+                    end if;
+
+                when DONE =>
+                    cs_reg          <= '1';  -- deactivate
+                    data_ready_reg  <= '1';  -- latch that data is valid
+                    -- Extract 12 bits if top nibble is "0000"
+                    if shift_reg(15 downto 12) = "0000" then
+                        adc_data_reg <= shift_reg(11 downto 0);
+                    else
+                        adc_data_reg <= (others => '0');
+                    end if;
+
+                when others =>
+                    null;
+            end case;
+        end if;
+    end process;
+
+    -- 2) Combinational next-state logic
+    fsm_next: process(current_state, start, bit_counter)
+    begin
+        next_state <= current_state;  -- Use <= for signal assignment
+        case current_state is
+
+            when IDLE =>
+                if start = '1' then
+                    next_state <= START_XFER;
+                end if;
+
+            when START_XFER =>
+                next_state <= TRANSFER;
+
+            when TRANSFER =>
+                if bit_counter = 16 then
+                    next_state <= DONE;
+                end if;
+
+            when DONE =>
+                next_state <= IDLE;
+
+            when others =>
+                next_state <= IDLE;
+        end case;
+    end process;
+
+    ----------------------------------------------------------------------------
+    --  Capture MISO on falling edge of SPI clock
+    ----------------------------------------------------------------------------
+    process(clk, reset)
+        variable spi_clk_prev: std_logic := '1';
+    begin
+        if reset = '1' then
+            shift_reg    <= (others => '0');
+            spi_clk_prev := '1';
+        elsif rising_edge(clk) then
+            -- detect falling edge of spi_clk_reg
+            if (spi_clk_prev = '1') and (spi_clk_reg = '0') then
+                if current_state = TRANSFER and bit_counter < 16 then
+                    -- Shift left, insert new bit
+                    shift_reg <= shift_reg(14 downto 0) & miso;
+                end if;
             end if;
-      
-      when INIT2 =>
-            next_state <= WAIT2;
-      
-      when WAIT2 =>
-            if Ri > 0 then
-                next_state <= WAIT2;
-            else
-                next_state <= INIT2;
-            end if;                    
+            spi_clk_prev := spi_clk_reg;
+        end if;
+    end process;
 
-      when INIT3 =>
-            next_state <= WAIT3;
-      
-      when WAIT3 =>
-            if Ri > 0 then
-                next_state <= WAIT3;
-            else
-                next_state <= INIT3;
-            end if;
-     
-      when INIT4 =>
-            next_state <= WAIT4;
-      
-      when WAIT4 =>
-            if Ri > 0 then
-                next_state <= WAIT4;
-            else
-                next_state <= INIT4;
-            end if;
-            
-        when INIT5 =>
-            next_state <= INIT6;
-            
-        when INIT6 =>
-            next_state <= WAIT5;    
-
-        when WAIT5 =>
-            if Ri > 0 then
-                next_state <= WAIT5;
-            else
-                next_state <= FINALIZE;
-            end if;                 
-
-                  
-       when FINALIZE =>
-            next_state <= READY;                
-      
-        
-      
-     
-      when others => -- Nem definiált állapotok esetén
-        next_state <= READY; -- Biztonsági visszaállás IDLE állapotra
-    end case;
-  end process;
-
-  -- Kimenetek hozzárendelése a bels? regiszterekhez
-  sck        <= sck_reg; -- SPI órajel kimenet
-  cs         <= cs_reg; -- Chip Select kimenet
-  adc_data   <= adc_data_reg; -- ADC adatok kimenete
-  data_ready <= data_ready_reg; -- Adatkész jelzés kimenet
+    ----------------------------------------------------------------------------
+    --  Outputs
+    ----------------------------------------------------------------------------
+    cs         <= cs_reg;
+    data_ready <= data_ready_reg;
+    adc_data   <= adc_data_reg;
 
 end Behavioral;
