@@ -20,7 +20,7 @@
   | Szimuláció         | 6    	  |
   | Valós megvalósítás | 4     	 |
   | Valós rendszer     | 4     	 |
-  | Projekt össz.      | 40      |
+  | Projekt össz.      | 44      |
   | Kérdések           | -       |
   | Összesen           | 53      |
 
