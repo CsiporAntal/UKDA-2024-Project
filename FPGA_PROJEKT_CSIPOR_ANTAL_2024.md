@@ -13,8 +13,8 @@
   | Jelenlét           | 9    	  |
   | Általános          | 6    	  |
   | Tervezés           | 8    	  |
-  | Mérések            | 0     	 |
-  | Dokumentáció össz. | 14    	 |
+  | Mérések            | 4     	 |
+  | Dokumentáció össz. | 18    	 |
   | Tervezés           | 8    	  |
   | Implementálás      | 8    	  |
   | Szimuláció         | 6    	  |
@@ -22,7 +22,7 @@
   | Valós rendszer     | 4     	 |
   | Projekt össz.      | 40      |
   | Kérdések           | -       |
-  | Összesen           | 49      |
+  | Összesen           | 53      |
 
 ---
 
